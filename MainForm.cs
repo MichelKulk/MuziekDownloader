@@ -45,7 +45,7 @@ internal sealed class MainForm : Form
         settings.DropDownItems.Add("Uitvoermap openen", null, (_, _) => OpenFolder());
         var help = new ToolStripMenuItem("Help");
         help.DropDownItems.Add("Over Muziek Downloader", null, (_, _) => MessageBox.Show(this,
-            "Muziek Downloader 0.1.2\nApp4you2 internetservice B.V.\n\nGeen account of apparatenlimiet.\nGebruik alleen voor materiaal dat je mag downloaden.", "Over"));
+            "Muziek Downloader 0.1.3\nApp4you2 internetservice B.V.\n\nGeen account of apparatenlimiet.\nGebruik alleen voor materiaal dat je mag downloaden.", "Over"));
         menu.Items.AddRange([file, settings, help]);
 
         var top = new TableLayoutPanel { Dock = DockStyle.Top, Height = 62, Padding = new Padding(14, 12, 14, 8), ColumnCount = 4 };
@@ -175,6 +175,11 @@ internal sealed class MainForm : Form
         Process.Start(new ProcessStartInfo("explorer.exe", _settings.OutputFolder) { UseShellExecute = true });
     }
 
-    private void SetBusy(bool busy) { _paste.Enabled = _download.Enabled = _update.Enabled = !busy; UseWaitCursor = busy; }
+    private void SetBusy(bool busy)
+    {
+        _paste.Enabled = _download.Enabled = _update.Enabled = !busy;
+        UseWaitCursor = false;
+        Cursor = Cursors.Default;
+    }
     private void ShowError(string title, Exception ex) { _status.Text = title; MessageBox.Show(this, ex.Message, title, MessageBoxButtons.OK, MessageBoxIcon.Error); }
 }
