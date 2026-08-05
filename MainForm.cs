@@ -45,7 +45,7 @@ internal sealed class MainForm : Form
         settings.DropDownItems.Add("Uitvoermap openen", null, (_, _) => OpenFolder());
         var help = new ToolStripMenuItem("Help");
         help.DropDownItems.Add("Over Muziek Downloader", null, (_, _) => MessageBox.Show(this,
-            "Muziek Downloader 0.1.3\nApp4you2 internetservice B.V.\n\nGeen account of apparatenlimiet.\nGebruik alleen voor materiaal dat je mag downloaden.", "Over"));
+            "Muziek Downloader 0.1.4\nApp4you2 internetservice B.V.\n\nGeen account of apparatenlimiet.\nGebruik alleen voor materiaal dat je mag downloaden.", "Over"));
         menu.Items.AddRange([file, settings, help]);
 
         var top = new TableLayoutPanel { Dock = DockStyle.Top, Height = 62, Padding = new Padding(14, 12, 14, 8), ColumnCount = 4 };
@@ -119,14 +119,22 @@ internal sealed class MainForm : Form
         {
             await EnsureToolsAsync();
             var service = new YtDlpService(_tools);
-            var item = await service.InspectAsync(url, true, _closing.Token);
-            if (item.IsPlaylist)
+            var downloadPlaylist = HasQueryParameter(uri, "list");
+            if (downloadPlaylist)
             {
                 var choice = MessageBox.Show(this, "Deze link hoort bij een afspeellijst.\n\nJa = volledige afspeellijst\nNee = alleen deze video", "Afspeellijst gevonden", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 if (choice == DialogResult.Cancel) return;
-                item.IsPlaylist = choice == DialogResult.Yes;
-                if (!item.IsPlaylist) item = await service.InspectAsync(url, false, _closing.Token);
+                downloadPlaylist = choice == DialogResult.Yes;
             }
+            var item = await service.InspectAsync(url, downloadPlaylist, _closing.Token);
+            if (!HasQueryParameter(uri, "list") && item.IsPlaylist)
+            {
+                var choice = MessageBox.Show(this, "Deze link hoort bij een afspeellijst.\n\nJa = volledige afspeellijst\nNee = alleen deze video", "Afspeellijst gevonden", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                if (choice == DialogResult.Cancel) return;
+                downloadPlaylist = choice == DialogResult.Yes;
+                if (!downloadPlaylist) item = await service.InspectAsync(url, false, _closing.Token);
+            }
+            item.IsPlaylist = downloadPlaylist;
             _items.Add(item); _source.ResetBindings(false); _url.Clear();
             _status.Text = $"Toegevoegd: {item.Title}";
         }
@@ -134,6 +142,11 @@ internal sealed class MainForm : Form
         catch (Exception ex) { ShowError("Link kon niet worden gelezen", ex); }
         finally { SetBusy(false); }
     }
+
+    private static bool HasQueryParameter(Uri uri, string name) => uri.Query
+        .TrimStart('?')
+        .Split('&', StringSplitOptions.RemoveEmptyEntries)
+        .Any(part => part.Split('=', 2)[0].Equals(name, StringComparison.OrdinalIgnoreCase));
 
     private async Task DownloadAllAsync()
     {
