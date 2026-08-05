@@ -10,7 +10,8 @@ internal sealed class ToolManager
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MuziekDownloader", "tools");
     public string YtDlpPath => Path.Combine(ToolFolder, "yt-dlp.exe");
     public string FfmpegPath => Path.Combine(ToolFolder, "ffmpeg.exe");
-    public bool ToolsReady => File.Exists(YtDlpPath) && File.Exists(FfmpegPath);
+    public string FfprobePath => Path.Combine(ToolFolder, "ffprobe.exe");
+    public bool ToolsReady => File.Exists(YtDlpPath) && File.Exists(FfmpegPath) && File.Exists(FfprobePath);
 
     public ToolManager() => _http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("MuziekDownloader", "0.1"));
 
@@ -26,10 +27,14 @@ internal sealed class ToolManager
 
     public async Task EnsureFfmpegAsync(IProgress<string>? status = null)
     {
-        if (File.Exists(FfmpegPath)) return;
         Directory.CreateDirectory(ToolFolder);
-        status?.Report("MP3-omzetter ophalen (eenmalig)â€¦");
         var zipPath = Path.Combine(ToolFolder, "ffmpeg.zip");
+        if (File.Exists(FfmpegPath) && File.Exists(FfprobePath))
+        {
+            if (File.Exists(zipPath)) File.Delete(zipPath);
+            return;
+        }
+        status?.Report("MP3-omzetter ophalen (eenmalig)â€¦");
         await DownloadAsync("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip", zipPath);
         using (var archive = ZipFile.OpenRead(zipPath))
         {
