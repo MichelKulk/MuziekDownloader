@@ -45,7 +45,7 @@ internal sealed class MainForm : Form
         settings.DropDownItems.Add("Uitvoermap openen", null, (_, _) => OpenFolder());
         var help = new ToolStripMenuItem("Help");
         help.DropDownItems.Add("Over Muziek Downloader", null, (_, _) => MessageBox.Show(this,
-            "Muziek Downloader 0.1.4\nApp4you2 internetservice B.V.\n\nGeen account of apparatenlimiet.\nGebruik alleen voor materiaal dat je mag downloaden.", "Over"));
+            "Muziek Downloader 0.1.5\nApp4you2 internetservice B.V.\n\nGeen account of apparatenlimiet.\nGebruik alleen voor materiaal dat je mag downloaden.", "Over"));
         menu.Items.AddRange([file, settings, help]);
 
         var top = new TableLayoutPanel { Dock = DockStyle.Top, Height = 62, Padding = new Padding(14, 12, 14, 8), ColumnCount = 4 };
