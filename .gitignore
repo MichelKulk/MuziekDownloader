@@ -5,3 +5,5 @@ obj/
 publish/
 artifacts/
 .dotnet-home/
+gh-auth*.log
+MuziekDownloader-*-win-*.zip
