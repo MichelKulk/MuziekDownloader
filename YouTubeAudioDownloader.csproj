@@ -9,7 +9,7 @@
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <AssemblyName>MuziekDownloader</AssemblyName>
     <RootNamespace>MuziekDownloader</RootNamespace>
-    <Version>0.1.2</Version>
+    <Version>0.1.3</Version>
     <Company>App4you2 internetservice B.V.</Company>
     <Authors>App4you2 internetservice B.V.</Authors>
     <Product>Muziek Downloader</Product>
