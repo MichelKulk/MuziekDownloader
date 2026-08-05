@@ -7,3 +7,4 @@ artifacts/
 .dotnet-home/
 gh-auth*.log
 MuziekDownloader-*-win-*.zip
+/MuziekDownloader.exe
