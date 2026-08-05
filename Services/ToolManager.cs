@@ -31,12 +31,14 @@ internal sealed class ToolManager
         status?.Report("MP3-omzetter ophalen (eenmalig)â€¦");
         var zipPath = Path.Combine(ToolFolder, "ffmpeg.zip");
         await DownloadAsync("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip", zipPath);
-        using var archive = ZipFile.OpenRead(zipPath);
-        foreach (var name in new[] { "ffmpeg.exe", "ffprobe.exe" })
+        using (var archive = ZipFile.OpenRead(zipPath))
         {
-            var entry = archive.Entries.FirstOrDefault(e => e.FullName.EndsWith("/bin/" + name, StringComparison.OrdinalIgnoreCase))
-                ?? throw new InvalidDataException($"{name} ontbreekt in het pakket.");
-            entry.ExtractToFile(Path.Combine(ToolFolder, name), true);
+            foreach (var name in new[] { "ffmpeg.exe", "ffprobe.exe" })
+            {
+                var entry = archive.Entries.FirstOrDefault(e => e.FullName.EndsWith("/bin/" + name, StringComparison.OrdinalIgnoreCase))
+                    ?? throw new InvalidDataException($"{name} ontbreekt in het pakket.");
+                entry.ExtractToFile(Path.Combine(ToolFolder, name), true);
+            }
         }
         File.Delete(zipPath);
         status?.Report("MP3-omzetter is gereed");
