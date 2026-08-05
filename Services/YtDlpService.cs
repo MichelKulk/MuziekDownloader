@@ -10,7 +10,9 @@ internal sealed partial class YtDlpService(ToolManager tools)
 {
     public async Task<DownloadItem> InspectAsync(string url, bool allowPlaylist, CancellationToken token = default)
     {
-        var args = allowPlaylist ? $"--flat-playlist --dump-single-json -- {Q(url)}" : $"--no-playlist --dump-single-json -- {Q(url)}";
+        var args = allowPlaylist
+            ? $"--flat-playlist --playlist-items 1 --dump-single-json -- {Q(url)}"
+            : $"--no-playlist --dump-single-json -- {Q(url)}";
         var (exit, output, error) = await RunAsync(args, null, token);
         if (exit != 0) throw new InvalidOperationException(CleanError(error));
         using var doc = JsonDocument.Parse(output);
