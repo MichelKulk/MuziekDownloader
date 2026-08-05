@@ -20,7 +20,7 @@ internal sealed class ToolManager
         Directory.CreateDirectory(ToolFolder);
         status?.Report("Downloadcomponent ophalenâ€¦");
         var temp = YtDlpPath + ".new";
-        await DownloadAsync("https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe", temp);
+        await DownloadAsync("https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe", temp, status, "Downloadcomponent");
         File.Move(temp, YtDlpPath, true);
         status?.Report("Downloadcomponent is bijgewerkt");
     }
@@ -35,7 +35,7 @@ internal sealed class ToolManager
             return;
         }
         status?.Report("MP3-omzetter ophalen (eenmalig)â€¦");
-        await DownloadAsync("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip", zipPath);
+        await DownloadAsync("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip", zipPath, status, "MP3-omzetter");
         using (var archive = ZipFile.OpenRead(zipPath))
         {
             foreach (var name in new[] { "ffmpeg.exe", "ffprobe.exe" })
@@ -49,12 +49,34 @@ internal sealed class ToolManager
         status?.Report("MP3-omzetter is gereed");
     }
 
-    private async Task DownloadAsync(string url, string target)
+    private async Task DownloadAsync(string url, string target, IProgress<string>? status, string label)
     {
         using var response = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
+        var total = response.Content.Headers.ContentLength;
         await using var input = await response.Content.ReadAsStreamAsync();
         await using var output = File.Create(target);
-        await input.CopyToAsync(output);
+        var buffer = new byte[128 * 1024];
+        long received = 0;
+        int read;
+        int lastPercentage = -1;
+        while ((read = await input.ReadAsync(buffer)) > 0)
+        {
+            await output.WriteAsync(buffer.AsMemory(0, read));
+            received += read;
+            if (total is > 0)
+            {
+                var percentage = (int)(received * 100 / total.Value);
+                if (percentage != lastPercentage)
+                {
+                    lastPercentage = percentage;
+                    status?.Report($"{label} downloaden: {percentage}%");
+                }
+            }
+            else
+            {
+                status?.Report($"{label} downloaden: {received / 1024 / 1024} MB");
+            }
+        }
     }
 }
