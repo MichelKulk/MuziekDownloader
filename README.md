@@ -1,5 +1,7 @@
 # Muziek Downloader
 
+![Muziek Downloader-pictogram](Assets/app-icon.png)
+
 Een lokale Windows-app om audio van toegestane online video's als MP3 op te slaan. Geen account, activatie of apparatenlimiet.
 
 ## Ontwikkelen
