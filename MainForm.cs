@@ -45,7 +45,7 @@ internal sealed class MainForm : Form
         settings.DropDownItems.Add("Uitvoermap openen", null, (_, _) => OpenFolder());
         var help = new ToolStripMenuItem("Help");
         help.DropDownItems.Add("Over Muziek Downloader", null, (_, _) => MessageBox.Show(this,
-            "Muziek Downloader 0.1.1\nApp4you2 internetservice B.V.\n\nGeen account of apparatenlimiet.\nGebruik alleen voor materiaal dat je mag downloaden.", "Over"));
+            "Muziek Downloader 0.1.2\nApp4you2 internetservice B.V.\n\nGeen account of apparatenlimiet.\nGebruik alleen voor materiaal dat je mag downloaden.", "Over"));
         menu.Items.AddRange([file, settings, help]);
 
         var top = new TableLayoutPanel { Dock = DockStyle.Top, Height = 62, Padding = new Padding(14, 12, 14, 8), ColumnCount = 4 };
@@ -90,7 +90,8 @@ internal sealed class MainForm : Form
     private async Task EnsureToolsAsync()
     {
         if (File.Exists(_tools.YtDlpPath)) return;
-        await UpdateToolsAsync();
+        _status.Text = "Downloadcomponent voorbereidenâ€¦";
+        await _tools.UpdateYtDlpAsync(new Progress<string>(s => _status.Text = s));
     }
 
     private async Task UpdateToolsAsync()
@@ -140,7 +141,14 @@ internal sealed class MainForm : Form
         SetBusy(true); _overall.Visible = true;
         try
         {
-            await EnsureToolsAsync(); await _tools.EnsureFfmpegAsync(new Progress<string>(s => _status.Text = s));
+            await EnsureToolsAsync();
+            _overall.Visible = true;
+            await _tools.EnsureFfmpegAsync(new Progress<string>(s => {
+                _status.Text = s;
+                var marker = s.LastIndexOf(':');
+                if (marker >= 0 && int.TryParse(s[(marker + 1)..].Trim().TrimEnd('%'), out var percentage))
+                    _overall.Value = Math.Clamp(percentage, 0, 100);
+            }));
             var service = new YtDlpService(_tools);
             foreach (var item in _items.Where(i => i.Status != "Voltooid"))
             {
