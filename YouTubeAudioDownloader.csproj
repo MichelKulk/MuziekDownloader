@@ -10,5 +10,10 @@
     <AssemblyName>MuziekDownloader</AssemblyName>
     <RootNamespace>MuziekDownloader</RootNamespace>
     <Version>0.1.0</Version>
+    <Company>App4you2 internetservice B.V.</Company>
+    <Authors>App4you2 internetservice B.V.</Authors>
+    <Product>Muziek Downloader</Product>
+    <Description>Windows-app om toegestane video-audio als MP3 op te slaan.</Description>
+    <Copyright>Copyright Â© 2026 App4you2 internetservice B.V.</Copyright>
   </PropertyGroup>
 </Project>
