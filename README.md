@@ -2,7 +2,7 @@
 
 ![Muziek Downloader-pictogram](Assets/app-icon.png)
 
-Een lokale Windows-app om audio van toegestane online video's als MP3 op te slaan. Geen account, activatie of apparatenlimiet.
+Een lokale Windows-app om toegestane online video's als MP3-audio of MP4-video op te slaan. Geen account, activatie of apparatenlimiet.
 
 ## Ontwikkelen
 
@@ -17,4 +17,5 @@ Bij de eerste update/download haalt de app `yt-dlp` en FFmpeg op in `%LOCALAPPDA
 
 Gebruik de app uitsluitend voor materiaal dat je mag downloaden. De app omzeilt geen DRM of betaalmuren.
 
-Copyright Â© 2026 App4you2 internetservice B.V.
+Copyright © 2026 App4you2 internetservice B.V.
+
