@@ -10,11 +10,12 @@
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <AssemblyName>MuziekDownloader</AssemblyName>
     <RootNamespace>MuziekDownloader</RootNamespace>
-    <Version>0.1.6</Version>
+    <Version>0.2.1</Version>
     <Company>App4you2 internetservice B.V.</Company>
     <Authors>App4you2 internetservice B.V.</Authors>
     <Product>Muziek Downloader</Product>
-    <Description>Windows-app om toegestane video-audio als MP3 op te slaan.</Description>
-    <Copyright>Copyright Â© 2026 App4you2 internetservice B.V.</Copyright>
+    <Description>Windows-app om toegestane video en audio als MP3 of MP4 op te slaan.</Description>
+    <Copyright>Copyright © 2026 App4you2 internetservice B.V.</Copyright>
   </PropertyGroup>
 </Project>
+
