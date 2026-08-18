@@ -18,9 +18,9 @@ internal sealed class ToolManager
     public async Task UpdateYtDlpAsync(IProgress<string>? status = null)
     {
         Directory.CreateDirectory(ToolFolder);
-        status?.Report("Downloadcomponent ophalenâ€¦");
+        status?.Report("Downloadcomponent ophalen…");
         var temp = YtDlpPath + ".new";
-        await DownloadAsync("https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe", temp, status, "Downloadcomponent");
+        await DownloadAsync("https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.exe", temp, status, "Downloadcomponent");
         File.Move(temp, YtDlpPath, true);
         status?.Report("Downloadcomponent is bijgewerkt");
     }
@@ -34,7 +34,7 @@ internal sealed class ToolManager
             if (File.Exists(zipPath)) File.Delete(zipPath);
             return;
         }
-        status?.Report("MP3-omzetter ophalen (eenmalig)â€¦");
+        status?.Report("MP3-omzetter ophalen (eenmalig)…");
         await DownloadAsync("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip", zipPath, status, "MP3-omzetter");
         using (var archive = ZipFile.OpenRead(zipPath))
         {
@@ -80,3 +80,4 @@ internal sealed class ToolManager
         }
     }
 }
+
