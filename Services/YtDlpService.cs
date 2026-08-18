@@ -30,11 +30,16 @@ internal sealed partial class YtDlpService(ToolManager tools)
     }
 
     public async Task DownloadAsync(DownloadItem item, string folder, bool playlist, bool skipExisting,
-        bool embedThumbnail, bool addMetadata, IProgress<(int percent, string status)> progress, CancellationToken token)
+        bool embedThumbnail, bool addMetadata, string outputFormat, int videoHeight,
+        IProgress<(int percent, string status)> progress, CancellationToken token)
     {
         Directory.CreateDirectory(folder);
         var output = playlist ? Path.Combine(folder, "%(playlist_title)s", "%(title)s.%(ext)s") : Path.Combine(folder, "%(title)s.%(ext)s");
-        var args = $"{(playlist ? "--yes-playlist" : "--no-playlist")} -f bestaudio/best -x --audio-format mp3 --audio-quality 0 " +
+        var isMp4 = outputFormat.Equals("MP4", StringComparison.OrdinalIgnoreCase);
+        var mediaArguments = isMp4
+            ? BuildMp4Arguments(videoHeight)
+            : "-f bestaudio/best -x --audio-format mp3 --audio-quality 0";
+        var args = $"{(playlist ? "--yes-playlist" : "--no-playlist")} {mediaArguments} " +
                    $"--ffmpeg-location {Q(tools.ToolFolder)} --newline --windows-filenames -o {Q(output)} " +
                    $"{(skipExisting ? "--no-overwrites" : "--force-overwrites")} " +
                    $"{(embedThumbnail ? "--embed-thumbnail" : "")} {(addMetadata ? "--embed-metadata" : "")} -- {Q(item.Url)}";
@@ -43,9 +48,17 @@ internal sealed partial class YtDlpService(ToolManager tools)
             if (match.Success && double.TryParse(match.Groups[1].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
                 progress.Report(((int)value, "Downloaden"));
             else if (line.Contains("ExtractAudio", StringComparison.OrdinalIgnoreCase)) progress.Report((96, "Omzetten naar MP3"));
+            else if (line.Contains("Merger", StringComparison.OrdinalIgnoreCase) || line.Contains("VideoRemuxer", StringComparison.OrdinalIgnoreCase))
+                progress.Report((97, "Beeld en geluid samenvoegen"));
         }, token);
         if (exit != 0) throw new InvalidOperationException(CleanError(error));
         progress.Report((100, "Voltooid"));
+    }
+
+    private static string BuildMp4Arguments(int videoHeight)
+    {
+        var heightFilter = videoHeight > 0 ? $"[height<={videoHeight}]" : "";
+        return $"-f \"bestvideo{heightFilter}[ext=mp4]+bestaudio[ext=m4a]/best{heightFilter}[ext=mp4]/best{heightFilter}\" --merge-output-format mp4 --remux-video mp4";
     }
 
     private async Task<(int exit, string output, string error)> RunAsync(string arguments, Action<string>? outputLine, CancellationToken token)
@@ -70,3 +83,4 @@ internal sealed partial class YtDlpService(ToolManager tools)
     [GeneratedRegex(@"\[download\]\s+([0-9.]+)%")]
     private static partial Regex ProgressRegex();
 }
+
