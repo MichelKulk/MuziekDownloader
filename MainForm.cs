@@ -10,10 +10,12 @@ internal sealed class MainForm : Form
     private readonly ToolManager _tools = new();
     private readonly BindingSource _source = new();
     private readonly List<DownloadItem> _items = [];
-    private readonly TextBox _url = new() { PlaceholderText = "Plak hier een YouTube-linkâ€¦", Dock = DockStyle.Fill, Font = new Font("Segoe UI", 11) };
-    private readonly Button _paste = new() { Text = "ï¼‹ Plakken", AutoSize = true, BackColor = Color.FromArgb(0, 176, 117), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
-    private readonly Button _download = new() { Text = "â†“ Downloaden", AutoSize = true, BackColor = Color.FromArgb(52, 143, 245), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+    private readonly TextBox _url = new() { PlaceholderText = "Plak hier een YouTube-link…", Dock = DockStyle.Fill, Font = new Font("Segoe UI", 11) };
+    private readonly Button _paste = new() { Text = "＋ Plakken", AutoSize = true, BackColor = Color.FromArgb(0, 176, 117), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+    private readonly Button _download = new() { Text = "↓ Downloaden", AutoSize = true, BackColor = Color.FromArgb(52, 143, 245), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
     private readonly Button _update = new() { Text = "Controleren op updates", AutoSize = true };
+    private readonly ComboBox _format = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 115 };
+    private readonly ComboBox _quality = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 95 };
     private readonly DataGridView _grid = new() { Dock = DockStyle.Fill, AutoGenerateColumns = false, AllowUserToAddRows = false, RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, BackgroundColor = Color.White, BorderStyle = BorderStyle.None };
     private readonly ToolStripStatusLabel _status = new("Gereed");
     private readonly ToolStripProgressBar _overall = new() { Width = 180, Visible = false };
@@ -33,6 +35,11 @@ internal sealed class MainForm : Form
         _source.DataSource = _items;
         _grid.DataSource = _source;
         _folder.Text = _settings.OutputFolder;
+        _format.Items.AddRange(["MP3 - Audio", "MP4 - Video"]);
+        _quality.Items.AddRange(["Beste", "1080p", "720p", "480p"]);
+        _format.SelectedIndex = _settings.OutputFormat == "MP4" ? 1 : 0;
+        _quality.SelectedIndex = _settings.VideoHeight switch { 0 => 0, 720 => 2, 480 => 3, _ => 1 };
+        UpdateFormatControls();
         WireEvents();
     }
 
@@ -42,19 +49,21 @@ internal sealed class MainForm : Form
         var file = new ToolStripMenuItem("Bestand");
         file.DropDownItems.Add("Afsluiten", null, (_, _) => Close());
         var settings = new ToolStripMenuItem("Instellingen");
-        settings.DropDownItems.Add("Uitvoermap kiezenâ€¦", null, (_, _) => ChooseFolder());
+        settings.DropDownItems.Add("Uitvoermap kiezen…", null, (_, _) => ChooseFolder());
         settings.DropDownItems.Add("Uitvoermap openen", null, (_, _) => OpenFolder());
         var help = new ToolStripMenuItem("Help");
         help.DropDownItems.Add("Over Muziek Downloader", null, (_, _) => MessageBox.Show(this,
-            "Muziek Downloader 0.1.6\nApp4you2 internetservice B.V.\n\nGeen account of apparatenlimiet.\nGebruik alleen voor materiaal dat je mag downloaden.", "Over"));
+            "Muziek Downloader 0.2.1\nApp4you2 internetservice B.V.\n\nMP3-audio en MP4-video.\nGeen account of apparatenlimiet.\nGebruik alleen voor materiaal dat je mag downloaden.", "Over"));
         menu.Items.AddRange([file, settings, help]);
 
-        var top = new TableLayoutPanel { Dock = DockStyle.Top, Height = 62, Padding = new Padding(14, 12, 14, 8), ColumnCount = 4 };
+        var top = new TableLayoutPanel { Dock = DockStyle.Top, Height = 62, Padding = new Padding(14, 12, 14, 8), ColumnCount = 6 };
         top.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         top.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         top.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        top.Controls.Add(_paste, 0, 0); top.Controls.Add(_url, 1, 0); top.Controls.Add(_update, 2, 0); top.Controls.Add(_download, 3, 0);
+        top.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        top.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        top.Controls.Add(_paste, 0, 0); top.Controls.Add(_url, 1, 0); top.Controls.Add(_format, 2, 0); top.Controls.Add(_quality, 3, 0); top.Controls.Add(_update, 4, 0); top.Controls.Add(_download, 5, 0);
         foreach (Control control in top.Controls) control.Margin = new Padding(5);
 
         _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(DownloadItem.Title), HeaderText = "Titel", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, MinimumWidth = 240 });
@@ -65,7 +74,7 @@ internal sealed class MainForm : Form
         var empty = new Label { Text = "Plak hierboven een URL om te beginnen", Dock = DockStyle.Top, Height = 45, TextAlign = ContentAlignment.MiddleCenter, ForeColor = Color.Gray };
         var bottom = new TableLayoutPanel { Dock = DockStyle.Bottom, Height = 54, Padding = new Padding(14, 7, 14, 7), ColumnCount = 3 };
         bottom.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); bottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); bottom.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        var choose = new Button { Text = "Map kiezenâ€¦", AutoSize = true };
+        var choose = new Button { Text = "Map kiezen…", AutoSize = true };
         choose.Click += (_, _) => ChooseFolder();
         bottom.Controls.Add(choose, 0, 0); bottom.Controls.Add(_folder, 1, 0);
         var options = new CheckBox { Text = "Bestaande bestanden overslaan", Checked = _settings.SkipExisting, AutoSize = true, Anchor = AnchorStyles.Right };
@@ -83,6 +92,8 @@ internal sealed class MainForm : Form
         _url.KeyDown += async (_, e) => { if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; await AddUrlAsync(); } };
         _download.Click += async (_, _) => await DownloadAllAsync();
         _update.Click += async (_, _) => await UpdateToolsAsync();
+        _format.SelectedIndexChanged += (_, _) => { UpdateFormatControls(); SaveFormatSettings(); };
+        _quality.SelectedIndexChanged += (_, _) => SaveFormatSettings();
         DragEnter += (_, e) => { if (e.Data?.GetDataPresent(DataFormats.Text) == true) e.Effect = DragDropEffects.Copy; };
         DragDrop += async (_, e) => { if (e.Data?.GetData(DataFormats.Text) is string text) { _url.Text = text.Trim(); await AddUrlAsync(); } };
         FormClosing += (_, _) => { _closing.Cancel(); _settings.Save(); };
@@ -91,7 +102,7 @@ internal sealed class MainForm : Form
     private async Task EnsureToolsAsync()
     {
         if (File.Exists(_tools.YtDlpPath)) return;
-        _status.Text = "Downloadcomponent voorbereidenâ€¦";
+        _status.Text = "Downloadcomponent voorbereiden…";
         await _tools.UpdateYtDlpAsync(new Progress<string>(s => _status.Text = s));
     }
 
@@ -104,7 +115,7 @@ internal sealed class MainForm : Form
             await _tools.UpdateYtDlpAsync(progress);
             await _tools.EnsureFfmpegAsync(progress);
             _status.Text = "Alles is bijgewerkt";
-            MessageBox.Show(this, "De downloadcomponent en MP3-omzetter zijn bijgewerkt.", "Updates", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(this, "De downloadcomponent en media-omzetter zijn bijgewerkt.", "Updates", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex) { ShowError("Bijwerken is mislukt", ex); }
         finally { SetBusy(false); }
@@ -167,7 +178,21 @@ internal sealed class MainForm : Form
             foreach (var item in _items.Where(i => i.Status != "Voltooid"))
             {
                 var progress = new Progress<(int percent, string status)>(p => { item.Progress = p.percent; item.Status = p.status; _overall.Value = p.percent; _source.ResetBindings(false); });
-                try { await service.DownloadAsync(item, _settings.OutputFolder, item.IsPlaylist, _settings.SkipExisting, _settings.EmbedThumbnail, _settings.AddMetadata, progress, _closing.Token); }
+                try
+                {
+                    await DownloadItemAsync(service, item, progress);
+                }
+                catch (Exception ex) when (IsYouTubeAccessError(ex))
+                {
+                    item.Status = "YouTube-koppeling bijwerken";
+                    _source.ResetBindings(false);
+                    _status.Text = "YouTube is gewijzigd; downloadcomponent automatisch bijwerken…";
+                    await _tools.UpdateYtDlpAsync(new Progress<string>(s => _status.Text = s));
+                    item.Progress = 0;
+                    item.Status = "Opnieuw proberen";
+                    _source.ResetBindings(false);
+                    await DownloadItemAsync(service, item, progress);
+                }
                 catch (Exception ex) { item.Status = "Mislukt"; _source.ResetBindings(false); ShowError($"Download mislukt: {item.Title}", ex); }
             }
             _status.Text = "Wachtrij verwerkt";
@@ -177,9 +202,18 @@ internal sealed class MainForm : Form
         finally { _overall.Visible = false; SetBusy(false); }
     }
 
+    private Task DownloadItemAsync(YtDlpService service, DownloadItem item, IProgress<(int percent, string status)> progress) =>
+        service.DownloadAsync(item, _settings.OutputFolder, item.IsPlaylist, _settings.SkipExisting,
+            _settings.EmbedThumbnail, _settings.AddMetadata, _settings.OutputFormat, _settings.VideoHeight,
+            progress, _closing.Token);
+
+    private static bool IsYouTubeAccessError(Exception ex) =>
+        ex.Message.Contains("HTTP Error 403", StringComparison.OrdinalIgnoreCase) ||
+        ex.Message.Contains("Forbidden", StringComparison.OrdinalIgnoreCase);
+
     private void ChooseFolder()
     {
-        using var dialog = new FolderBrowserDialog { Description = "Kies waar de MP3-bestanden worden opgeslagen", SelectedPath = _settings.OutputFolder, UseDescriptionForTitle = true };
+        using var dialog = new FolderBrowserDialog { Description = "Kies waar de gedownloade bestanden worden opgeslagen", SelectedPath = _settings.OutputFolder, UseDescriptionForTitle = true };
         if (dialog.ShowDialog(this) == DialogResult.OK) { _settings.OutputFolder = dialog.SelectedPath; _folder.Text = dialog.SelectedPath; _settings.Save(); }
     }
 
@@ -191,9 +225,26 @@ internal sealed class MainForm : Form
 
     private void SetBusy(bool busy)
     {
-        _paste.Enabled = _download.Enabled = _update.Enabled = !busy;
+        _paste.Enabled = _download.Enabled = _update.Enabled = _format.Enabled = !busy;
+        _quality.Enabled = !busy && _settings.OutputFormat == "MP4";
         UseWaitCursor = false;
         Cursor = Cursors.Default;
     }
+
+    private void UpdateFormatControls()
+    {
+        var isMp4 = _format.SelectedIndex == 1;
+        _quality.Enabled = isMp4;
+        _quality.Visible = isMp4;
+    }
+
+    private void SaveFormatSettings()
+    {
+        if (_format.SelectedIndex < 0 || _quality.SelectedIndex < 0) return;
+        _settings.OutputFormat = _format.SelectedIndex == 1 ? "MP4" : "MP3";
+        _settings.VideoHeight = _quality.SelectedIndex switch { 0 => 0, 2 => 720, 3 => 480, _ => 1080 };
+        _settings.Save();
+    }
     private void ShowError(string title, Exception ex) { _status.Text = title; MessageBox.Show(this, ex.Message, title, MessageBoxButtons.OK, MessageBoxIcon.Error); }
 }
+
