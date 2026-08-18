@@ -9,6 +9,8 @@ internal sealed class AppSettings
     public bool SkipExisting { get; set; } = true;
     public bool EmbedThumbnail { get; set; } = true;
     public bool AddMetadata { get; set; } = true;
+    public string OutputFormat { get; set; } = "MP3";
+    public int VideoHeight { get; set; } = 1080;
 
     private static readonly string SettingsFolder = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MuziekDownloader");
@@ -31,3 +33,4 @@ internal sealed class AppSettings
         File.WriteAllText(SettingsFile, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
     }
 }
+
